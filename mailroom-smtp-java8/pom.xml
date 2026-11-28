@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.primelogiclab.mailroom</groupId>
+        <artifactId>mailroom-smtp-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>mailroom-smtp-java8</artifactId>
+    <name>mailroom-smtp-java8</name>
+    <description>SMTP transport for mailroom on Jakarta Mail and Angus Mail. Java 8 set.</description>
+
+    <properties>
+        <module.name>io.primelogiclab.mailroom.smtp</module.name>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.primelogiclab.mailroom</groupId>
+            <artifactId>mailroom-core-java8</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+        </dependency>
+        <!-- Compile scope, not runtime: SMTP replies are read from org.eclipse.angus.mail.smtp's exceptions. -->
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.primelogiclab.mailroom</groupId>
+            <artifactId>mailroom-tck-java8</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Adds shared-tests, the tests and fixtures this module shares with its Java 21 twin. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <!-- Angus Mail 2.0.5 is Java 8 bytecode apart from module-info (the parent ignores it) and
+                 AngusMailFeature, a GraalVM native-image hook compiled for Java 9: only native-image loads it, through
+                 META-INF/native-image, never a JVM. Every other class still has to be Java 8. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-java8-set</id>
+                        <configuration>
+                            <rules>
+                                <enforceBytecodeVersion>
+                                    <ignoreClasses combine.children="append">
+                                        <ignoreClass>org.eclipse.angus.mail.nativeimage.AngusMailFeature</ignoreClass>
+                                    </ignoreClasses>
+                                </enforceBytecodeVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
